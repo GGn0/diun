@@ -30,17 +30,17 @@ type ParseImageOptions struct {
 }
 
 // Name returns the full name representation of an image.
-func (i Image) Name() string {
+func (i *Image) Name() string {
 	return i.named.Name()
 }
 
 // String returns the string representation of an image.
-func (i Image) String() string {
+func (i *Image) String() string {
 	return i.named.String()
 }
 
 // Reference returns either the digest if it is non-empty or the tag for the image.
-func (i Image) Reference() string {
+func (i *Image) Reference() string {
 	if len(i.Digest.String()) > 1 {
 		return i.Digest.String()
 	}
@@ -91,7 +91,7 @@ func ParseImage(parseOpts ParseImageOptions) (Image, error) {
 	return i, nil
 }
 
-func (i Image) hubLink() (string, error) {
+func (i *Image) hubLink() (string, error) {
 	if i.opts.HubTpl != "" {
 		var out bytes.Buffer
 		tmpl, err := template.New("tmpl").

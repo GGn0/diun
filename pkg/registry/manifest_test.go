@@ -1,28 +1,27 @@
-package registry_test
+package registry
 
 import (
 	"testing"
 
-	"github.com/crazy-max/diun/v4/pkg/registry"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCompareDigest(t *testing.T) {
-	rc, err := registry.New(registry.Options{
+	rc, err := New(Options{
 		CompareDigest: true,
 	})
 	if err != nil {
 		t.Error(err)
 	}
 
-	img, err := registry.ParseImage(registry.ParseImageOptions{
+	img, err := ParseImage(ParseImageOptions{
 		Name: "crazymax/diun:2.5.0",
 	})
 	if err != nil {
 		t.Error(err)
 	}
 
-	manifest, _, err := rc.Manifest(img, registry.Manifest{
+	manifest, _, err := rc.Manifest(img, Manifest{
 		Name:     "docker.io/crazymax/diun",
 		Tag:      "2.5.0",
 		MIMEType: "application/vnd.docker.distribution.manifest.list.v2+json",
@@ -38,7 +37,7 @@ func TestCompareDigest(t *testing.T) {
 }
 
 func TestManifest(t *testing.T) {
-	rc, err := registry.New(registry.Options{
+	rc, err := New(Options{
 		CompareDigest: true,
 		ImageOs:       "linux",
 		ImageArch:     "amd64",
@@ -47,14 +46,14 @@ func TestManifest(t *testing.T) {
 		t.Error(err)
 	}
 
-	img, err := registry.ParseImage(registry.ParseImageOptions{
+	img, err := ParseImage(ParseImageOptions{
 		Name: "portainer/portainer-ce:linux-amd64-2.5.1",
 	})
 	if err != nil {
 		t.Error(err)
 	}
 
-	manifest, updated, err := rc.Manifest(img, registry.Manifest{
+	manifest, updated, err := rc.Manifest(img, Manifest{
 		Name:     "docker.io/portainer/portainer-ce",
 		Tag:      "linux-amd64-2.5.1",
 		MIMEType: "application/vnd.docker.distribution.manifest.v2+json",
@@ -98,7 +97,7 @@ func TestManifest(t *testing.T) {
 }
 
 func TestManifestMultiUpdatedPlatform(t *testing.T) {
-	rc, err := registry.New(registry.Options{
+	rc, err := New(Options{
 		CompareDigest: true,
 		ImageOs:       "linux",
 		ImageArch:     "amd64",
@@ -107,14 +106,14 @@ func TestManifestMultiUpdatedPlatform(t *testing.T) {
 		t.Error(err)
 	}
 
-	img, err := registry.ParseImage(registry.ParseImageOptions{
+	img, err := ParseImage(ParseImageOptions{
 		Name: "mongo:3.6.21",
 	})
 	if err != nil {
 		t.Error(err)
 	}
 
-	manifest, updated, err := rc.Manifest(img, registry.Manifest{
+	manifest, updated, err := rc.Manifest(img, Manifest{
 		Name:     "docker.io/library/mongo",
 		Tag:      "3.6.21",
 		MIMEType: "application/vnd.docker.distribution.manifest.list.v2+json",
@@ -177,7 +176,7 @@ func TestManifestMultiUpdatedPlatform(t *testing.T) {
 }
 
 func TestManifestMultiNotUpdatedPlatform(t *testing.T) {
-	rc, err := registry.New(registry.Options{
+	rc, err := New(Options{
 		CompareDigest: true,
 		ImageOs:       "linux",
 		ImageArch:     "amd64",
@@ -186,14 +185,14 @@ func TestManifestMultiNotUpdatedPlatform(t *testing.T) {
 		t.Error(err)
 	}
 
-	img, err := registry.ParseImage(registry.ParseImageOptions{
+	img, err := ParseImage(ParseImageOptions{
 		Name: "mongo:3.6.21",
 	})
 	if err != nil {
 		t.Error(err)
 	}
 
-	manifest, updated, err := rc.Manifest(img, registry.Manifest{
+	manifest, updated, err := rc.Manifest(img, Manifest{
 		Name:     "docker.io/library/mongo",
 		Tag:      "3.6.21",
 		MIMEType: "application/vnd.docker.distribution.manifest.list.v2+json",
@@ -256,7 +255,7 @@ func TestManifestMultiNotUpdatedPlatform(t *testing.T) {
 }
 
 func TestManifestVariant(t *testing.T) {
-	rc, err := registry.New(registry.Options{
+	rc, err := New(Options{
 		ImageOs:      "linux",
 		ImageArch:    "arm",
 		ImageVariant: "v7",
@@ -265,18 +264,194 @@ func TestManifestVariant(t *testing.T) {
 		t.Error(err)
 	}
 
-	img, err := registry.ParseImage(registry.ParseImageOptions{
+	img, err := ParseImage(ParseImageOptions{
 		Name: "crazymax/diun:2.5.0",
 	})
 	if err != nil {
 		t.Error(err)
 	}
 
-	manifest, _, err := rc.Manifest(img, registry.Manifest{})
+	manifest, _, err := rc.Manifest(img, Manifest{})
 	assert.NoError(t, err)
 	assert.Equal(t, "docker.io/crazymax/diun", manifest.Name)
 	assert.Equal(t, "2.5.0", manifest.Tag)
 	assert.Equal(t, "application/vnd.docker.distribution.manifest.list.v2+json", manifest.MIMEType)
 	assert.Equal(t, "linux/arm/v7", manifest.Platform)
 	assert.Empty(t, manifest.DockerVersion)
+}
+
+func TestManifestTaggedDigest(t *testing.T) {
+	rc, err := New(Options{
+		CompareDigest: true,
+		ImageOs:       "linux",
+		ImageArch:     "amd64",
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	img, err := ParseImage(ParseImageOptions{
+		Name: "crazymax/diun:latest@sha256:3fca3dd86c2710586208b0f92d1ec4ce25382f4cad4ae76a2275db8e8bb24031",
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	manifest, updated, err := rc.Manifest(img, Manifest{
+		Name:     "docker.io/crazymax/diun",
+		Tag:      "latest",
+		MIMEType: "application/vnd.oci.image.index.v1+json",
+		Digest:   "sha256:3fca3dd86c2710586208b0f92d1ec4ce25382f4cad4ae76a2275db8e8bb24031",
+		Platform: "linux/amd64",
+		Raw: []byte(`{
+	"schemaVersion": 2,
+	"mediaType": "application/vnd.oci.image.index.v1+json",
+	"digest": "sha256:3fca3dd86c2710586208b0f92d1ec4ce25382f4cad4ae76a2275db8e8bb24031",
+	"size": 4661,
+	"manifests": [
+		{
+			"mediaType": "application/vnd.oci.image.manifest.v1+json",
+			"digest": "sha256:bf782d6b2030c2a4c6884abb603ec5c99b5394554f57d56972cea24fb5d545d5",
+			"size": 866,
+			"platform": {
+				"architecture": "386",
+				"os": "linux"
+			}
+		},
+		{
+			"mediaType": "application/vnd.oci.image.manifest.v1+json",
+			"digest": "sha256:f44444abd33ee7c088d7527af84e3321f08313d12d9c679327bb8ae228e35f6a",
+			"size": 866,
+			"platform": {
+				"architecture": "amd64",
+				"os": "linux"
+			}
+		},
+		{
+			"mediaType": "application/vnd.oci.image.manifest.v1+json",
+			"digest": "sha256:df77b6ef88fbdb6175a2c60a9487a235aa1bdb39f60ee0a277d480d3cbc9f34a",
+			"size": 866,
+			"platform": {
+				"architecture": "arm",
+				"os": "linux",
+				"variant": "v6"
+			}
+		},
+		{
+			"mediaType": "application/vnd.oci.image.manifest.v1+json",
+			"digest": "sha256:73e210387511588b38d16046de4ade809404b746cf6d16cd51ca23a96c8264b7",
+			"size": 866,
+			"platform": {
+				"architecture": "arm",
+				"os": "linux",
+				"variant": "v7"
+			}
+		},
+		{
+			"mediaType": "application/vnd.oci.image.manifest.v1+json",
+			"digest": "sha256:1e070a6b2a3b5bf7c2c296fba6b01c8896514ae62aae6e48f4c28a775e5218dd",
+			"size": 866,
+			"platform": {
+				"architecture": "arm64",
+				"os": "linux"
+			}
+		},
+		{
+			"mediaType": "application/vnd.oci.image.manifest.v1+json",
+			"digest": "sha256:b7f984a85faf86839928fef6854f21da7afd2f2405b6043bf2aca562f1e1aa77",
+			"size": 866,
+			"platform": {
+				"architecture": "ppc64le",
+				"os": "linux"
+			}
+		},
+		{
+			"mediaType": "application/vnd.oci.image.manifest.v1+json",
+			"digest": "sha256:baa9a5e6de3f155526071eb0e55dcf14c12dca5c4301475e038df88fa5cb7c5a",
+			"size": 568,
+			"annotations": {
+				"vnd.docker.reference.digest": "sha256:bf782d6b2030c2a4c6884abb603ec5c99b5394554f57d56972cea24fb5d545d5",
+				"vnd.docker.reference.type": "attestation-manifest"
+			},
+			"platform": {
+				"architecture": "unknown",
+				"os": "unknown"
+			}
+		},
+		{
+			"mediaType": "application/vnd.oci.image.manifest.v1+json",
+			"digest": "sha256:422bcf3cad62b4d8b21593387759889bcef02c28d7b0a3f6866b98b6502e8f01",
+			"size": 568,
+			"annotations": {
+				"vnd.docker.reference.digest": "sha256:f44444abd33ee7c088d7527af84e3321f08313d12d9c679327bb8ae228e35f6a",
+				"vnd.docker.reference.type": "attestation-manifest"
+			},
+			"platform": {
+				"architecture": "unknown",
+				"os": "unknown"
+			}
+		},
+		{
+			"mediaType": "application/vnd.oci.image.manifest.v1+json",
+			"digest": "sha256:8ca5e335824bf17c10143c88f0e6955b5571dd69e06cd1a0ba46681169aa355d",
+			"size": 568,
+			"annotations": {
+				"vnd.docker.reference.digest": "sha256:df77b6ef88fbdb6175a2c60a9487a235aa1bdb39f60ee0a277d480d3cbc9f34a",
+				"vnd.docker.reference.type": "attestation-manifest"
+			},
+			"platform": {
+				"architecture": "unknown",
+				"os": "unknown"
+			}
+		},
+		{
+			"mediaType": "application/vnd.oci.image.manifest.v1+json",
+			"digest": "sha256:01fdd0609476fe4da74af6bcb5a4fff97b0f9efbbea6b6ab142371ecc0738ffd",
+			"size": 568,
+			"annotations": {
+				"vnd.docker.reference.digest": "sha256:73e210387511588b38d16046de4ade809404b746cf6d16cd51ca23a96c8264b7",
+				"vnd.docker.reference.type": "attestation-manifest"
+			},
+			"platform": {
+				"architecture": "unknown",
+				"os": "unknown"
+			}
+		},
+		{
+			"mediaType": "application/vnd.oci.image.manifest.v1+json",
+			"digest": "sha256:93178a24195f522195951a2cf16719bbae5358686b3789339c1096a85375117c",
+			"size": 568,
+			"annotations": {
+				"vnd.docker.reference.digest": "sha256:1e070a6b2a3b5bf7c2c296fba6b01c8896514ae62aae6e48f4c28a775e5218dd",
+				"vnd.docker.reference.type": "attestation-manifest"
+			},
+			"platform": {
+				"architecture": "unknown",
+				"os": "unknown"
+			}
+		},
+		{
+			"mediaType": "application/vnd.oci.image.manifest.v1+json",
+			"digest": "sha256:1f5e5456e6f236c03684fea8070ca4095092a1d07a186acb03b15d160d100043",
+			"size": 568,
+			"annotations": {
+				"vnd.docker.reference.digest": "sha256:b7f984a85faf86839928fef6854f21da7afd2f2405b6043bf2aca562f1e1aa77",
+				"vnd.docker.reference.type": "attestation-manifest"
+			},
+			"platform": {
+				"architecture": "unknown",
+				"os": "unknown"
+			}
+		}
+	]
+}`),
+	})
+
+	assert.NoError(t, err)
+	assert.Equal(t, false, updated)
+	assert.Equal(t, "docker.io/crazymax/diun", manifest.Name)
+	assert.Equal(t, "latest", manifest.Tag)
+	assert.Equal(t, "application/vnd.oci.image.index.v1+json", manifest.MIMEType)
+	assert.Equal(t, "sha256:3fca3dd86c2710586208b0f92d1ec4ce25382f4cad4ae76a2275db8e8bb24031", manifest.Digest.String())
+	assert.Equal(t, "linux/amd64", manifest.Platform)
 }

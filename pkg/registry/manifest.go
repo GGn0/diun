@@ -30,7 +30,7 @@ func (c *Client) Manifest(image Image, dbManifest Manifest) (Manifest, bool, err
 	ctx, cancel := c.timeoutContext()
 	defer cancel()
 
-	rmRef, err := ParseReference(image.String())
+	rmRef, err := DockerReference(image.String())
 	if err != nil {
 		return Manifest{}, false, errors.Wrap(err, "Cannot parse reference")
 	}

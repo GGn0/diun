@@ -1,23 +1,43 @@
-package registry_test
+package registry
 
 import (
 	"testing"
 
-	"github.com/crazy-max/diun/v4/pkg/registry"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestTags(t *testing.T) {
 	assert.NotNil(t, rc)
 
-	image, err := registry.ParseImage(registry.ParseImageOptions{
+	image, err := ParseImage(ParseImageOptions{
 		Name: "crazymax/diun:3.0.0",
 	})
 	if err != nil {
 		t.Error(err)
 	}
 
-	tags, err := rc.Tags(registry.TagsOptions{
+	tags, err := rc.Tags(TagsOptions{
+		Image: image,
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	assert.True(t, tags.Total > 0)
+	assert.True(t, len(tags.List) > 0)
+}
+
+func TestTagsWithDigest(t *testing.T) {
+	assert.NotNil(t, rc)
+
+	image, err := ParseImage(ParseImageOptions{
+		Name: "crazymax/diun:latest@sha256:3fca3dd86c2710586208b0f92d1ec4ce25382f4cad4ae76a2275db8e8bb24031",
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	tags, err := rc.Tags(TagsOptions{
 		Image: image,
 	})
 	if err != nil {
@@ -68,12 +88,12 @@ func TestTagsSort(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		sortTag  registry.SortTag
+		sortTag  SortTag
 		expected []string
 	}{
 		{
 			name:    "sort default",
-			sortTag: registry.SortTagDefault,
+			sortTag: SortTagDefault,
 			expected: []string{
 				"0.1.0",
 				"0.4.0",
@@ -113,7 +133,7 @@ func TestTagsSort(t *testing.T) {
 		},
 		{
 			name:    "sort lexicographical",
-			sortTag: registry.SortTagLexicographical,
+			sortTag: SortTagLexicographical,
 			expected: []string{
 				"0.1.0",
 				"0.4.0",
@@ -153,7 +173,7 @@ func TestTagsSort(t *testing.T) {
 		},
 		{
 			name:    "sort reverse",
-			sortTag: registry.SortTagReverse,
+			sortTag: SortTagReverse,
 			expected: []string{
 				"ubuntu-5.0",
 				"latest",
@@ -193,7 +213,7 @@ func TestTagsSort(t *testing.T) {
 		},
 		{
 			name:    "sort semver",
-			sortTag: registry.SortTagSemver,
+			sortTag: SortTagSemver,
 			expected: []string{
 				"alpine-5.0",
 				"ubuntu-5.0",
@@ -236,7 +256,7 @@ func TestTagsSort(t *testing.T) {
 	for _, tt := range testCases {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			tags := registry.SortTags(repotags, tt.sortTag)
+			tags := SortTags(repotags, tt.sortTag)
 			assert.Equal(t, tt.expected, tags)
 		})
 	}

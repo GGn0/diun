@@ -2,7 +2,7 @@
 
 Notifications can be sent via Telegram using a [Telegram Bot](https://core.telegram.org/bots).
 
-Follow the [instructions](https://core.telegram.org/bots#6-botfather) to set up a bot and get it's token.
+Follow the [instructions](https://core.telegram.org/bots#6-botfather) to set up a bot and get its token.
 
 Message the [GetID bot](https://t.me/getidsbot) to find your chat ID.
 Multiple chat IDs can be provided in order to deliver notifications to multiple recipients.
